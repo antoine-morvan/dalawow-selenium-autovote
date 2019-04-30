@@ -1,5 +1,13 @@
 package dalawow.autovote;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.openqa.selenium.By;
@@ -16,7 +24,7 @@ public class Main {
 	 * Structure to store login information (actually a simple pair of strings with
 	 * long / password).
 	 */
-	private static final class Login {
+	static final class Login {
 		static Login of(final String id, final String password) {
 			return new Login(id, password);
 		}
@@ -28,6 +36,11 @@ public class Main {
 			this.id = id;
 			this.password = password;
 		}
+
+		@Override
+		public String toString() {
+			return id + " / " + password;
+		}
 	}
 
 	/**
@@ -36,7 +49,7 @@ public class Main {
 	 *
 	 * If from >= to, sleep exactly 'from' millis.
 	 */
-	private static final void waitMS(final long from, final long to) throws InterruptedException {
+	static final void waitMS(final long from, final long to) throws InterruptedException {
 		final long nextLong;
 		if (from >= to) {
 			nextLong = from;
@@ -49,15 +62,64 @@ public class Main {
 	/**
 	 * Read command line arguments and buildup a proper array of {@link Login}
 	 */
-	private static final Login[] parseArgs(final String[] args) {
-		// TODO
-		return new Login[] { Login.of("XXX", "YYY") };
+	static final Collection<Login> parseArgs(final String[] args) {
+		final int length = args.length;
+		if (length == 0) {
+			throw new IllegalArgumentException();
+		}
+		final List<Login> logins;
+		if ("-h".equals(args[0])) {
+			// print usage
+			printUsage();
+			logins = Collections.emptyList();
+		} else if ("-f".equals(args[0])) {
+			// read logins from file
+			final String filePath = args[1];
+			logins = readFile(filePath);
+		} else {
+			// read logins from command line
+			logins = new ArrayList<>(length / 2);
+			for (int i = 0; i < length; i += 2) {
+				logins.add(Login.of(args[i], args[i+1]));
+			}
+		}
+		return logins;
+	}
+
+	static final void printUsage() {
+		final StringBuilder sb = new StringBuilder();
+		sb.append("Usage : \n");
+		sb.append("  $ java -jar <jar> -f <path to file>\n");
+		sb.append("         Read given file and vote for all specified accounts in it.\n");
+		sb.append("         Each line of the file should be login:password\n");
+		sb.append("  $ java -jar <jar> \"login\" \"password\"\n");
+		sb.append("         Specify login and password from commandline. Can specify\n");
+		sb.append("         multiple account information at once (separate with space).\n");
+		sb.append("Usage : \n");
+		System.out.println(sb.toString());
+	}
+
+	static final List<Login> readFile(final String filePath) {
+		final List<Login> logins;
+		final Path path = Paths.get(filePath);
+		final List<String> readAllLines;
+		try {
+			readAllLines = Files.readAllLines(path);
+		} catch (final IOException e) {
+			throw new RuntimeException("Could not read file", e);
+		}
+		logins = new ArrayList<>();
+		readAllLines.forEach(l -> {
+			final String[] split = l.split(":");
+			logins.add(Login.of(split[0], split[0]));
+		});
+		return logins;
 	}
 
 	/**
 	 * Use selenium to access dalawow site and perform the 4 votes
 	 */
-	private static final void voteFor(final Login login) throws InterruptedException {
+	static final void voteFor(final Login login) throws InterruptedException {
 
 		// Create an instance of the driver
 		final WebDriver driver = new FirefoxDriver();
@@ -81,7 +143,7 @@ public class Main {
 		try {
 			waitLoginSuccessfull.until(ExpectedConditions.presenceOfElementLocated(By.id("page-menu")));
 		} catch (final TimeoutException e) {
-			System.err.println("Login for user '"+login.id+"' timed out.");
+			System.err.println("Login for user '" + login.id + "' timed out.");
 			return;
 		}
 
@@ -104,7 +166,9 @@ public class Main {
 	}
 
 	public static void main(final String[] args) throws InterruptedException {
-		final Login[] logins = parseArgs(args);
+		printUsage();
+
+		final Collection<Login> logins = parseArgs(args);
 		for (final Login login : logins) {
 			voteFor(login);
 		}
