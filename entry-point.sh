@@ -1,7 +1,6 @@
-#/bin/bash
+#!/bin/bash
 
-if [ "$1" == "--help" ]; then
-  echo "Give user and password as argument"
+if [ $# == 0 ] || [ "$1" == "--help" ]; then
   java -jar /var/autovote/target/selenium.test-0.0.1-SNAPSHOT-jar-with-dependencies.jar -h
   exit 0
 fi
@@ -30,7 +29,10 @@ if [ -x /usr/bin/Xvfb ]; then
   XVFBPID=$!
 fi
 
-java -jar /var/autovote/target/selenium.test-0.0.1-SNAPSHOT-jar-with-dependencies.jar $@
+while true; do
+	java -jar /var/autovote/target/selenium.test-0.0.1-SNAPSHOT-jar-with-dependencies.jar $@
+	sleep $((3600 * 12 + 3))
+done
 
 if [ -x /usr/bin/Xvfb ]; then
   kill -2 $XVFBPID
