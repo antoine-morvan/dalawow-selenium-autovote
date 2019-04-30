@@ -95,7 +95,6 @@ public class Main {
 		sb.append("  $ java -jar <jar> \"login\" \"password\"\n");
 		sb.append("         Specify login and password from commandline. Can specify\n");
 		sb.append("         multiple account information at once (separate with space).\n");
-		sb.append("Usage : \n");
 		System.out.println(sb.toString());
 	}
 
@@ -166,8 +165,6 @@ public class Main {
 	}
 
 	public static void main(final String[] args) throws InterruptedException {
-		printUsage();
-
 		final Collection<Login> logins = parseArgs(args);
 		for (final Login login : logins) {
 			voteFor(login);
