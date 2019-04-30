@@ -4,7 +4,7 @@ FROM selenium/standalone-firefox:latest
 RUN \
   sudo apt update && \
   sudo apt -y upgrade && \
-  sudo apt -y install maven xvfb openjdk-8-jdk
+  sudo apt -y install maven xvfb openjdk-8-jdk bsdmainutils
 
 # Prepare working dir
 RUN \
@@ -18,7 +18,7 @@ COPY entry-point.sh /var/autovote/
 WORKDIR /var/autovote/
 RUN \
   mvn clean package && \
-  chmod a+x /var/autovote/docker-entrypoint.sh
+  sudo chmod a+x /var/autovote/entry-point.sh
 
-ENTRYPOINT ["/var/autovote/docker-entrypoint.sh"]
-CMD['--help']
+ENTRYPOINT ["/var/autovote/entry-point.sh"]
+CMD ["--help"]

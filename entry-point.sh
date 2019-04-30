@@ -2,6 +2,7 @@
 
 if [ "$1" == "--help" ]; then
   echo "Give user and password as argument"
+  java -jar /var/autovote/target/selenium.test-0.0.1-SNAPSHOT-jar-with-dependencies.jar -h
   exit 0
 fi
 
