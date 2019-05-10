@@ -31,7 +31,7 @@ fi
 
 while true; do
 	java -jar /var/autovote/target/selenium.test-0.0.1-SNAPSHOT-jar-with-dependencies.jar $@
-	sleep $((3600 * 12 + 3))
+	sleep $((3600 * 12 + 60 * 3))
 done
 
 if [ -x /usr/bin/Xvfb ]; then
